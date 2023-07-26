@@ -8,6 +8,7 @@ import { HomeHeader } from '@components/HomeHeader'
 export function Home() {
   const [groupSelected, setGroupSelected] = useState('costas')
   const [groups, setGroups] = useState(['Costas', 'Biceps', 'Triceps', 'ombro'])
+  const [exercicios, setExercicios] = useState(['Remana Unilateral', 'Puxada Frontal', 'Remada Curvada', 'Levantamento Terra', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
 
   return (
     <VStack flex={1}>
@@ -37,9 +38,15 @@ export function Home() {
               4
             </Text>        
         </HStack>
-          <ExerciseCard />
-          <ExerciseCard />
-          <ExerciseCard />
+          <FlatList
+            data={exercicios}
+            keyExtractor={item => item}
+            renderItem={({ item }) => (
+              <ExerciseCard name={item}/>
+            )}
+            showsVerticalScrollIndicator={false}
+            _contentContainerStyle={{pb:16}}
+          />
       </VStack>
     </VStack>
   )
