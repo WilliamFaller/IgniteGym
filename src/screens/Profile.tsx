@@ -1,24 +1,67 @@
 import { useState } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { Center, ScrollView, VStack, Skeleton, Text, Heading } from 'native-base'
+import { Center, ScrollView, VStack, Skeleton, Text, Heading, useToast } from 'native-base';
 
-import { ScreenHeader } from '@components/ScreenHeader'
-import { UserPhoto } from '@components/UserPhoto'
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+
+import { ScreenHeader } from '@components/ScreenHeader';
+import { UserPhoto } from '@components/UserPhoto';
 import { Input } from '@components/Input';
 import { Button } from '@components/Button';
 
 const PHOTO_SIZE = 33;
 
 export function Profile() {
-  const [photoIsLoad, setPhotoIsLoad] = useState(false);
+
+  const [photoIsLoading, setPhotoIsLoading] = useState(false);
+  const [userPhoto, setUserPhoto] = useState('https://www.github.com/williamfaller.png');
+
+  const toast = useToast();
+
+  //Acesso a galeria de fotos
+  async function handleUserPhotoSelect() {
+    setPhotoIsLoading(true);
+    try {
+      const photoSelected = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        aspect: [4, 4],
+        allowsEditing: true
+      });
+
+      if (photoSelected.canceled) {
+        return;
+      }
+
+      if (photoSelected.assets[0].uri) {
+        const photoInfo = await FileSystem.getInfoAsync(photoSelected.assets[0].uri);
+
+        if(photoInfo.size && (photoInfo.size / 1024 / 1024) > 0.5) {
+          return toast.show({
+            title: "A imagem deve ter no máximo 5MB",
+            placement: "top",
+            bgColor: "red.500",
+          });
+        }
+      }
+
+        setUserPhoto(photoSelected.assets[0].uri);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setPhotoIsLoading(false);
+    }
+  }
+
   return (
     <VStack flex={1}>
       <ScreenHeader
         title="Perfil"
       />
-      <ScrollView contentContainerStyle={{paddingBottom: 36}}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 36 }}>
         <Center mt={6} px={10}>
-          {photoIsLoad ?
+          {photoIsLoading ?
             <Skeleton
               w={PHOTO_SIZE}
               h={PHOTO_SIZE}
@@ -29,12 +72,12 @@ export function Profile() {
             :
             <UserPhoto
               size={PHOTO_SIZE}
-              source={{ uri: 'https://github.com/williamfaller.png' }}
+              source={{ uri: userPhoto }}
               alt="Foto de perfil"
             />
           }
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleUserPhotoSelect}>
             <Text color="green.500" fontWeight="bold" fontSize="md" mt={2} mb={8}>
               Alterar foto
             </Text>
@@ -74,9 +117,9 @@ export function Profile() {
             bg="gray.600"
           />
 
-          <Button 
+          <Button
             title="Salvar alterações"
-            mt={6} 
+            mt={6}
           />
 
         </Center>
