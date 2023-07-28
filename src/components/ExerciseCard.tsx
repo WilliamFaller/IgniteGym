@@ -20,7 +20,7 @@ export function ExerciseCard({name, ...rest }:Props) {
           resizeMode="cover"
         />
         <VStack flex={1}>
-          <Heading color="white" fontSize="lg">
+          <Heading color="white" fontSize="lg" fontFamily="heading">
             {name}
           </Heading>
           <Text color="gray.200" fontSize="sm" mt={1} numberOfLines={2}>

@@ -26,7 +26,7 @@ export function History() {
         keyExtractor={item => item}
         renderItem={({ item }) => <HistoryCard />}
         renderSectionHeader={({ section: { title } }) => (
-          <Heading color="gray.200" fontSize="md" mt={10} mb={3} ml={2}>{title}</Heading>
+          <Heading fontFamily="heading" color="gray.200" fontSize="md" mt={10} mb={3} ml={2}>{title}</Heading>
         )}
         px={8}
         contentContainerStyle={exercises.length === 0 && { flex: 1 , justifyContent: 'center'}}
