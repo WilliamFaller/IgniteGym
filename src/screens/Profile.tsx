@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { Center, ScrollView, VStack, Skeleton, Text, Heading, useToast } from 'native-base';
 
+import * as yup from 'yup'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 
@@ -10,9 +14,29 @@ import { UserPhoto } from '@components/UserPhoto';
 import { Input } from '@components/Input';
 import { Button } from '@components/Button';
 
+type FormDataProps = {
+  name: string;
+  oldPassword: string;
+  newPassword: string;
+  newPasswordConfirm: string;
+}
+
+const profileSchema = yup.object().shape({
+  name: yup.string(),
+  oldPassword: yup.string().min(6, 'A senha deve ter no mínimo 6 caracteres.'),
+  newPassword: yup.string().min(6, 'A senha deve ter no mínimo 6 caracteres.'),
+  newPasswordConfirm: yup.string().oneOf([yup.ref('newPassword')], 'As senhas devem ser iguais.')
+});
+
+function handleProfile({ name, oldPassword, newPassword, newPasswordConfirm }: FormDataProps) {
+  console.log({ name, oldPassword, newPassword, newPasswordConfirm });
+}
+
 const PHOTO_SIZE = 33;
 
 export function Profile() {
+
+  const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({ resolver: yupResolver(profileSchema) });
 
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
   const [userPhoto, setUserPhoto] = useState('https://www.github.com/williamfaller.png');
@@ -37,7 +61,7 @@ export function Profile() {
       if (photoSelected.assets[0].uri) {
         const photoInfo = await FileSystem.getInfoAsync(photoSelected.assets[0].uri);
 
-        if(photoInfo.size && (photoInfo.size / 1024 / 1024) > 0.5) {
+        if (photoInfo.size && (photoInfo.size / 1024 / 1024) > 0.5) {
           return toast.show({
             title: "A imagem deve ter no máximo 5MB",
             placement: "top",
@@ -46,7 +70,7 @@ export function Profile() {
         }
       }
 
-        setUserPhoto(photoSelected.assets[0].uri);
+      setUserPhoto(photoSelected.assets[0].uri);
     } catch (error) {
       console.log(error);
     } finally {
@@ -83,12 +107,20 @@ export function Profile() {
             </Text>
           </TouchableOpacity>
 
-          <Input
-            placeholder="Nome"
-            bg="gray.600"
+          <Controller
+            control={control}
+            name="name"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Nome"
+                bg="gray.600"
+                onChangeText={onChange}
+                value={value}
+              />
+            )}
           />
 
-          <Input
+            <Input
             placeholder="E-mail"
             value="william.faller09@gmail.com"
             bg="gray.600"
@@ -98,28 +130,56 @@ export function Profile() {
           <Heading fontFamily="heading" color="gray.200" fontSize="md" mb={2} alignSelf="flex-start" ml={2} mt={6}>
             Alterar senha
           </Heading>
-
-          <Input
-            placeholder="Senha atual"
-            bg="gray.600"
-            secureTextEntry
+          
+          <Controller 
+            control={control}
+            name="oldPassword"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Senha atual"
+                bg="gray.600"
+                secureTextEntry
+                onChangeText={onChange}
+                value={value}
+                errorMessage={errors.oldPassword?.message}
+              />
+            )}
           />
 
-          <Input
-            placeholder="Nova senha"
-            secureTextEntry
-            bg="gray.600"
+          <Controller 
+            control={control}
+            name="newPassword"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Nova senha"
+                bg="gray.600"
+                secureTextEntry
+                onChangeText={onChange}
+                value={value}
+                errorMessage={errors.newPassword?.message}
+              />
+            )}
           />
 
-          <Input
-            placeholder="Confirmar nova senha"
-            secureTextEntry
-            bg="gray.600"
+          <Controller 
+            control={control}
+            name="newPasswordConfirm"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Confirmar nova senha"
+                bg="gray.600"
+                secureTextEntry
+                onChangeText={onChange}
+                value={value}
+                errorMessage={errors.newPasswordConfirm?.message}
+              />
+            )}
           />
 
           <Button
             title="Salvar alterações"
             mt={6}
+            onPress={handleSubmit(handleProfile)}
           />
 
         </Center>
