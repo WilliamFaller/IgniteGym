@@ -23,11 +23,19 @@ type FormDataProps = {
   newPasswordConfirm: string;
 }
 
-const profileSchema = yup.object().shape({
-  name: yup.string(),
-  oldPassword: yup.string().min(6, 'A senha deve ter no mínimo 6 caracteres.'),
-  newPassword: yup.string().min(6, 'A senha deve ter no mínimo 6 caracteres.'),
-  newPasswordConfirm: yup.string().oneOf([yup.ref('newPassword')], 'As senhas devem ser iguais.')
+const profileSchema = yup.object({
+  name: yup.string().required('Informe o nome.'),
+  newPassword: yup.string().min(6, 'A senha deve ter no mínimo 6 caracteres.').nullable().transform((value) => !!value ? value : null),
+  newPasswordConfirm: yup
+  .string()
+  .nullable()
+  .transform((confirmeNewPassword) => !!confirmeNewPassword ? confirmeNewPassword : null )
+  .oneOf([yup.ref('newPassword')], 'As senhas devem ser iguais.')
+  .when('newPassword', {
+		is: (Field: any) => Field,
+		then: (schema) =>
+			schema.nullable().required('Informe a confirmação da senha.').transform((confirmeNewPassword) => !!confirmeNewPassword ? confirmeNewPassword : null).oneOf([yup.ref('newPassword')], 'As senhas devem ser iguais.'),
+  })
 });
 
 function handleProfileUpdate(data: FormDataProps) {
@@ -38,13 +46,14 @@ const PHOTO_SIZE = 33;
 
 export function Profile() {
   const { user } = useAuth();
+  const [confirmeNewPassword, setConfirmeNewPassword] = useState();
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({ 
-    resolver: yupResolver(profileSchema),
     defaultValues: {
       name: user.name,
       email: user.email,
-    }
+    },
+    resolver: yupResolver(profileSchema)
   });
   
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
@@ -125,6 +134,7 @@ export function Profile() {
                 bg="gray.600"
                 onChangeText={onChange}
                 value={value}
+                errorMessage={errors.name?.message}
               />
             )}
           />
@@ -132,12 +142,12 @@ export function Profile() {
           <Controller
             control={control}
             name="email"
-            render={({ field: { onChange, value } }) => (
+            render={({ field: { value } }) => (
               <Input
                 placeholder="E-mail"
                 bg="gray.600"
+                isReadOnly
                 isDisabled
-                onChangeText={onChange}
                 value={value}
               />
             )}
@@ -156,7 +166,6 @@ export function Profile() {
                 bg="gray.600"
                 secureTextEntry
                 onChangeText={onChange}
-                errorMessage={errors.oldPassword?.message}
               />
             )}
           />
@@ -183,7 +192,8 @@ export function Profile() {
                 placeholder="Confirmar nova senha"
                 bg="gray.600"
                 secureTextEntry
-                onChangeText={onChange}
+                onChangeText={() => setConfirmeNewPassword}
+                value={confirmeNewPassword}
                 errorMessage={errors.newPasswordConfirm?.message}
               />
             )}
