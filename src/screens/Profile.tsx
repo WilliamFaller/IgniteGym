@@ -13,9 +13,11 @@ import { ScreenHeader } from '@components/ScreenHeader';
 import { UserPhoto } from '@components/UserPhoto';
 import { Input } from '@components/Input';
 import { Button } from '@components/Button';
+import { useAuth } from '@hooks/useAuth';
 
 type FormDataProps = {
   name: string;
+  email: string;
   oldPassword: string;
   newPassword: string;
   newPasswordConfirm: string;
@@ -28,16 +30,23 @@ const profileSchema = yup.object().shape({
   newPasswordConfirm: yup.string().oneOf([yup.ref('newPassword')], 'As senhas devem ser iguais.')
 });
 
-function handleProfile({ name, oldPassword, newPassword, newPasswordConfirm }: FormDataProps) {
-  console.log({ name, oldPassword, newPassword, newPasswordConfirm });
+function handleProfileUpdate(data: FormDataProps) {
+  console.log(data);
 }
 
 const PHOTO_SIZE = 33;
 
 export function Profile() {
+  const { user } = useAuth();
 
-  const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({ resolver: yupResolver(profileSchema) });
-
+  const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({ 
+    resolver: yupResolver(profileSchema),
+    defaultValues: {
+      name: user.name,
+      email: user.email,
+    }
+  });
+  
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
   const [userPhoto, setUserPhoto] = useState('https://www.github.com/williamfaller.png');
 
@@ -120,57 +129,61 @@ export function Profile() {
             )}
           />
 
-            <Input
-            placeholder="E-mail"
-            value="william.faller09@gmail.com"
-            bg="gray.600"
-            isDisabled
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="E-mail"
+                bg="gray.600"
+                isDisabled
+                onChangeText={onChange}
+                value={value}
+              />
+            )}
           />
 
           <Heading fontFamily="heading" color="gray.200" fontSize="md" mb={2} alignSelf="flex-start" ml={2} mt={6}>
             Alterar senha
           </Heading>
-          
-          <Controller 
+
+          <Controller
             control={control}
             name="oldPassword"
-            render={({ field: { onChange, value } }) => (
+            render={({ field: { onChange } }) => (
               <Input
                 placeholder="Senha atual"
                 bg="gray.600"
                 secureTextEntry
                 onChangeText={onChange}
-                value={value}
                 errorMessage={errors.oldPassword?.message}
               />
             )}
           />
 
-          <Controller 
+          <Controller
             control={control}
             name="newPassword"
-            render={({ field: { onChange, value } }) => (
+            render={({ field: { onChange } }) => (
               <Input
                 placeholder="Nova senha"
                 bg="gray.600"
                 secureTextEntry
                 onChangeText={onChange}
-                value={value}
                 errorMessage={errors.newPassword?.message}
               />
             )}
           />
 
-          <Controller 
+          <Controller
             control={control}
             name="newPasswordConfirm"
-            render={({ field: { onChange, value } }) => (
+            render={({ field: { onChange } }) => (
               <Input
                 placeholder="Confirmar nova senha"
                 bg="gray.600"
                 secureTextEntry
                 onChangeText={onChange}
-                value={value}
                 errorMessage={errors.newPasswordConfirm?.message}
               />
             )}
@@ -179,7 +192,7 @@ export function Profile() {
           <Button
             title="Salvar alterações"
             mt={6}
-            onPress={handleSubmit(handleProfile)}
+            onPress={handleSubmit(handleProfileUpdate)}
           />
 
         </Center>
