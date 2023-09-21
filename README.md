@@ -6,7 +6,7 @@ O propósito deste projeto consistiu em adquirir conhecimentos sobre, rotas púb
 
 Aqui temos um breve video mostrando seu funcionamento.
 
-https://github.com/WilliamFaller/IgniteGym/assets/44819409/351a0c1b-165c-4910-a8b9-40cf269b609c
+https://github.com/WilliamFaller/IgniteGym/assets/44819409/521b7eb9-43dc-4bed-b8f5-f7667a6430ef
 ## Autor
 
 - Linkedin: [@William-Faller](linkedin.com/in/william-faller)
